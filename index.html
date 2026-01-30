@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoBroker Property Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .filters-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .filters-header h2 {
+            font-size: 18px;
+            color: #444;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .filter-item:hover {
+            background: #e9ecef;
+        }
+
+        .filter-item.active {
+            background: #e8f4fd;
+            border-color: #667eea;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .filter-item input[type="number"] {
+            width: 60px;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .filter-item input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-item label {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .stats-bar .count {
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stats-bar .info {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .property-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .property-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .property-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: #e9ecef;
+        }
+
+        .property-content {
+            padding: 20px;
+        }
+
+        .property-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .property-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .property-location {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .property-location svg {
+            width: 16px;
+            height: 16px;
+            fill: #888;
+        }
+
+        .property-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 16px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 16px;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-item .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .property-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .amenity-tag {
+            padding: 4px 10px;
+            background: #f0f4f8;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .amenity-tag.highlight {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .property-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .property-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .property-price span {
+            font-size: 14px;
+            font-weight: 400;
+            color: #888;
+        }
+
+        .property-deposit {
+            text-align: right;
+        }
+
+        .property-deposit .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .property-deposit .label {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .no-results h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .no-results p {
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e9ecef;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .view-details-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+            margin-top: 12px;
+        }
+
+        .view-details-btn:hover {
+            background: #5a6fd6;
+        }
+
+        .refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        .refresh-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .refresh-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        .refresh-btn.loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        .search-param-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .search-param-section label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .search-param-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .search-param-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .keywords-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .keywords-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .keywords-header label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .keywords-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .keyword-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #e8f4fd;
+            border: 1px solid #667eea;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #667eea;
+        }
+
+        .keyword-tag .remove-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .keyword-tag .remove-btn:hover {
+            color: #dc3545;
+        }
+
+        .add-keyword-form {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-keyword-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .add-keyword-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-keyword-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .add-keyword-btn:hover {
+            background: #5a6fd6;
+        }
+
+        @media (max-width: 768px) {
+            .properties-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .property-details {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NoBroker Property Search</h1>
+        <p>Find your perfect rental home in Bangalore - PLaY Arena & Harlur Road</p>
+    </div>
+
+    <div class="container">
+        <div class="filters-section">
+            <div class="filters-header">
+                <h2>Filters</h2>
+                <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">
+                    <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                    <span>Refresh Data</span>
+                </button>
+            </div>
+            <div class="filters-grid">
+                <div class="filter-item active" onclick="toggleFilter(this, 'propertyAge')">
+                    <input type="checkbox" id="filter-age" checked>
+                    <label for="filter-age">Property Age <</label>
+                    <input type="number" id="age-value" value="15" min="1" max="50" onclick="event.stopPropagation()" onchange="applyFilters()">
+                    <label>years</label>
+                </div>
+                <div class="filter-item active" onclick="toggleFilter(this, 'gym')">
+                    <input type="checkbox" id="filter-gym" checked>
+                    <label for="filter-gym">Has Gym</label>
+                </div>
+                <div class="filter-item active" onclick="toggleFilter(this, 'floor')">
+                    <input type="checkbox" id="filter-floor" checked>
+                    <label for="filter-floor">Floor ></label>
+                    <input type="number" id="floor-value" value="1" min="0" max="50" onclick="event.stopPropagation()" onchange="applyFilters()">
+                </div>
+                <div class="filter-item active" onclick="toggleFilter(this, 'security')">
+                    <input type="checkbox" id="filter-security" checked>
+                    <label for="filter-security">Gated Security</label>
+                </div>
+            </div>
+            <div class="search-param-section">
+                <label for="search-param">Search Param (Base64 encoded location data):</label>
+                <textarea id="search-param" class="search-param-input">W3sibGF0IjoxMi45MTEzOTUsImxvbiI6NzcuNjc2Mjk5MSwicGxhY2VJZCI6IkNoSUpuU0RJMDJ3VHJqc1JzMHhqeEktem5LcyIsInBsYWNlTmFtZSI6IlBMYVkgQXJlbmEiLCJzaG93TWFwIjpmYWxzZX0seyJsYXQiOjEyLjg5OTEyNzgsImxvbiI6NzcuNjU4OTAzMiwicGxhY2VJZCI6IkNoSUo5NFpkTmdBVHJqc1JiaGhVSE5kQXNUcyIsInBsYWNlTmFtZSI6Ikhhcmx1ciBSb2FkIiwic2hvd01hcCI6ZmFsc2V9XQ==</textarea>
+            </div>
+            <div class="keywords-section">
+                <div class="keywords-header">
+                    <label>Property Title Keywords (match any):</label>
+                    <div class="filter-item" style="padding: 8px 12px;" onclick="toggleFilter(this, 'propertyTitle')">
+                        <input type="checkbox" id="filter-keywords" checked>
+                        <label for="filter-keywords">Enable Filter</label>
+                    </div>
+                </div>
+                <div id="keywords-container" class="keywords-container"></div>
+                <div class="add-keyword-form">
+                    <input type="text" id="new-keyword" class="add-keyword-input" placeholder="Add new keyword (e.g., brigade, embassy)">
+                    <button class="add-keyword-btn" onclick="addKeyword()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <span class="count" id="results-count">Loading...</span>
+            <span class="info">2 BHK & 3 BHK | Rs 30,000 - 55,000</span>
+        </div>
+
+        <div id="properties-container" class="properties-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading properties...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allProperties = [];
+        let propertyTitleKeywords = [];
+        let filters = {
+            propertyAge: true,
+            gym: true,
+            floor: true,
+            security: true,
+            propertyTitle: true
+        };
+
+        const API_BASE_URL = 'https://www.nobroker.in/api/v3/multi/property/RENT/filter?budgetRange=0%2C500000&city=bangalore&isMetro=false&locality=PLaY+Arena%2CHarlur+Road&orderBy=lastUpdateDate%2Cdesc&radius=3.0&rent=30000%2C55000&searchParam=W3sibGF0IjoxMi45MTEzOTUsImxvbiI6NzcuNjc2Mjk5MSwicGxhY2VJZCI6IkNoSUpuU0RJMDJ3VHJqc1JzMHhqeEktem5LcyIsInBsYWNlTmFtZSI6IlBMYVkgQXJlbmEiLCJzaG93TWFwIjpmYWxzZX0seyJsYXQiOjEyLjg5OTEyNzgsImxvbiI6NzcuNjU4OTAzMiwicGxhY2VJZCI6IkNoSUo5NFpkTmdBVHJqc1JiaGhVSE5kQXNUcyIsInBsYWNlTmFtZSI6Ikhhcmx1ciBSb2FkIiwic2hvd01hcCI6ZmFsc2V9XQ%3D%3D&sharedAccomodation=0&type=BHK2%2CBHK3';
+
+        async function fetchProperties() {
+            try {
+                const response = await fetch('output.json');
+                const data = await response.json();
+                allProperties = data.data || [];
+                applyFilters();
+            } catch (error) {
+                console.error('Error fetching properties:', error);
+                document.getElementById('properties-container').innerHTML = `
+                    <div class="no-results">
+                        <h3>Error Loading Properties</h3>
+                        <p>Please make sure output.json is in the same directory.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function refreshData() {
+            const btn = document.getElementById('refresh-btn');
+            const btnText = btn.querySelector('span');
+            const container = document.getElementById('properties-container');
+
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btnText.textContent = 'Refreshing...';
+
+            container.innerHTML = `
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="spinner"></div>
+                    <p>Fetching latest properties from NoBroker...</p>
+                </div>
+            `;
+
+            try {
+                const searchParam = document.getElementById('search-param').value.trim();
+                const url = '/api/refresh' + (searchParam ? '?searchParam=' + encodeURIComponent(searchParam) : '');
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                allProperties = data.data || [];
+                applyFilters();
+                console.log(`Refreshed: ${allProperties.length} unique properties loaded`);
+            } catch (error) {
+                console.error('Error refreshing properties:', error);
+                container.innerHTML = `
+                    <div class="no-results" style="grid-column: 1 / -1;">
+                        <h3>Error Refreshing Data</h3>
+                        <p>Could not fetch from NoBroker API. Please try again later.</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btnText.textContent = 'Refresh Data';
+            }
+        }
+
+        function toggleFilter(element, filterName) {
+            const checkbox = element.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('active', checkbox.checked);
+            filters[filterName] = checkbox.checked;
+            applyFilters();
+        }
+
+        function applyFilters() {
+            let filtered = allProperties;
+
+            const maxAge = parseInt(document.getElementById('age-value').value) || 15;
+            const minFloor = parseInt(document.getElementById('floor-value').value) || 1;
+
+            if (filters.propertyAge) {
+                // Include properties without propertyAge, filter only those that have it and exceed the limit
+                filtered = filtered.filter(p => p.propertyAge === undefined || p.propertyAge < maxAge);
+            }
+
+            if (filters.gym) {
+                filtered = filtered.filter(p => p.amenitiesMap && p.amenitiesMap.GYM === true);
+            }
+
+            if (filters.floor) {
+                filtered = filtered.filter(p => p.floor !== undefined && p.floor > minFloor);
+            }
+
+            if (filters.security) {
+                filtered = filtered.filter(p =>
+                    p.aea__ &&
+                    p.aea__.GATED_SECURITY &&
+                    p.aea__.GATED_SECURITY.display_value === "Yes"
+                );
+            }
+
+            if (filters.propertyTitle && propertyTitleKeywords.length > 0) {
+                filtered = filtered.filter(p => {
+                    const title = (p.society || p.propertyTitle || '').toLowerCase();
+                    return propertyTitleKeywords.some(keyword => title.includes(keyword.toLowerCase()));
+                });
+            }
+
+            renderProperties(filtered);
+        }
+
+        function renderProperties(properties) {
+            const container = document.getElementById('properties-container');
+            const countEl = document.getElementById('results-count');
+
+            countEl.textContent = `${properties.length} Properties Found`;
+
+            if (properties.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results" style="grid-column: 1 / -1;">
+                        <h3>No Properties Found</h3>
+                        <p>Try adjusting your filters to see more results.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = properties.map(property => {
+                const imageUrl = property.thumbnailImage ||
+                    (property.originalImageUrl ? `https:${property.originalImageUrl}` :
+                    'https://via.placeholder.com/400x220?text=No+Image');
+
+                const amenities = [];
+                if (property.amenitiesMap) {
+                    if (property.amenitiesMap.GYM) amenities.push({ name: 'Gym', highlight: true });
+                    if (property.amenitiesMap.POOL) amenities.push({ name: 'Pool', highlight: false });
+                    if (property.amenitiesMap.LIFT) amenities.push({ name: 'Lift', highlight: false });
+                    if (property.amenitiesMap.PARK) amenities.push({ name: 'Park', highlight: false });
+                    if (property.amenitiesMap.SECURITY) amenities.push({ name: 'Security', highlight: true });
+                    if (property.amenitiesMap.PB) amenities.push({ name: 'Power Backup', highlight: false });
+                }
+
+                const detailUrl = property.detailUrl ? `https://www.nobroker.in${property.detailUrl}` : '#';
+
+                return `
+                    <div class="property-card">
+                        <img class="property-image" src="${imageUrl}" alt="${property.society || 'Property'}"
+                             onerror="this.src='https://via.placeholder.com/400x220?text=No+Image'">
+                        <div class="property-content">
+                            <span class="property-type-badge">${property.typeDesc || property.type}</span>
+                            <h3 class="property-title">${property.society || 'Property'}</h3>
+                            <p class="property-location">
+                                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                ${property.nbLocality || property.locality || 'Bangalore'}
+                            </p>
+                            <div class="property-details">
+                                <div class="detail-item">
+                                    <div class="value">${property.propertySize || '-'}</div>
+                                    <div class="label">Sq.ft</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="value">${property.floor !== undefined ? property.floor : '-'}</div>
+                                    <div class="label">Floor</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="value">${property.bathroom || '-'}</div>
+                                    <div class="label">Bath</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="value">${property.propertyAge !== undefined ? property.propertyAge + 'y' : '-'}</div>
+                                    <div class="label">Age</div>
+                                </div>
+                            </div>
+                            <div class="property-amenities">
+                                ${amenities.slice(0, 5).map(a =>
+                                    `<span class="amenity-tag ${a.highlight ? 'highlight' : ''}">${a.name}</span>`
+                                ).join('')}
+                            </div>
+                            <div class="property-footer">
+                                <div class="property-price">
+                                    ${property.formattedPrice || property.rent?.toLocaleString()}
+                                    <span>/month</span>
+                                </div>
+                                <div class="property-deposit">
+                                    <div class="value">${property.formattedDeposit || '-'}</div>
+                                    <div class="label">Deposit</div>
+                                </div>
+                            </div>
+                            <a href="${detailUrl}" target="_blank" class="view-details-btn">View Details</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Keyword management
+        async function loadKeywords() {
+            try {
+                const response = await fetch('/api/keywords');
+                const data = await response.json();
+                propertyTitleKeywords = data.propertyTitleKeywords || [];
+                renderKeywords();
+            } catch (error) {
+                console.error('Error loading keywords:', error);
+                propertyTitleKeywords = [];
+            }
+        }
+
+        async function saveKeywordsToServer() {
+            try {
+                await fetch('/api/keywords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ propertyTitleKeywords })
+                });
+            } catch (error) {
+                console.error('Error saving keywords:', error);
+            }
+        }
+
+        function renderKeywords() {
+            const container = document.getElementById('keywords-container');
+            container.innerHTML = propertyTitleKeywords.map(keyword => `
+                <span class="keyword-tag">
+                    ${keyword}
+                    <button class="remove-btn" onclick="removeKeyword('${keyword}')">&times;</button>
+                </span>
+            `).join('');
+        }
+
+        function addKeyword() {
+            const input = document.getElementById('new-keyword');
+            const keyword = input.value.trim().toLowerCase();
+            if (keyword && !propertyTitleKeywords.includes(keyword)) {
+                propertyTitleKeywords.push(keyword);
+                renderKeywords();
+                saveKeywordsToServer();
+                applyFilters();
+            }
+            input.value = '';
+        }
+
+        function removeKeyword(keyword) {
+            propertyTitleKeywords = propertyTitleKeywords.filter(k => k !== keyword);
+            renderKeywords();
+            saveKeywordsToServer();
+            applyFilters();
+        }
+
+        // Handle Enter key in keyword input
+        document.getElementById('new-keyword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addKeyword();
+            }
+        });
+
+        // Initialize
+        loadKeywords();
+        fetchProperties();
+    </script>
+</body>
+</html>
